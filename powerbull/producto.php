@@ -1,0 +1,11 @@
+<?php
+require_once __DIR__.'/includes/bootstrap.php';require_once __DIR__.'/includes/layout.php';
+$id=filter_var($_GET['id']??null,FILTER_VALIDATE_INT,['options'=>['min_range'=>1]]);$p=$id?get_product($id):null;
+if(!$p)page_error('Este producto no está disponible','Podés encontrar otras opciones en nuestro catálogo.',404);
+$user=current_user();page_header($p['nombre'],'catalogo');
+?>
+<main class="container page-section" id="contenido"><nav class="breadcrumbs" aria-label="Ubicación"><a href="<?=h(url('index.php#catalogo'))?>">Productos</a><?=icon('chevron')?><span><?=h($p['nombre'])?></span></nav>
+<div class="product-detail"><div class="detail-photo"><img src="<?=h(image_url($p['imagen_url']))?>" alt="<?=h($p['imagen_alt']?:$p['nombre'])?>" width="650" height="600" data-fallback="<?=h(url('assets/images/sin-imagen.svg'))?>"></div><div class="detail-info"><span class="eyebrow"><?=h($p['marca'])?> / <?=h($p['categoria'])?></span><h1><?=h($p['nombre'])?></h1><p class="detail-intro"><?=h($p['descripcion'])?></p><div class="detail-price"><?=money($p['precio'])?><small>Precio por unidad · ARS</small></div><span class="stock-label <?=(int)$p['stock']>0?'':'no-stock'?>"><i></i><?=(int)$p['stock']>0?(int)$p['stock'].' unidades disponibles':'Sin stock'?></span>
+<?php if($user):?><form class="detail-buy" data-api="cart_add" method="post" action="<?=h(url('api.php'))?>"><input type="hidden" name="id" value="<?=(int)$p['id']?>"><label for="cantidad">Cantidad</label><div class="detail-buy-row"><input id="cantidad" type="number" name="cantidad" value="1" min="1" max="<?=max(1,min(99,(int)$p['stock']))?>" required><button class="button button-large" type="submit" <?=(int)$p['stock']>0?'':'disabled'?>><?=icon('cart')?>Agregar al carrito</button></div><p class="form-message" data-form-message role="status" hidden></p></form><?php else:?><a class="button button-large" href="<?=h(url('login.php?next='.rawurlencode('producto.php?id='.$p['id'])))?>">Iniciar sesión<?=icon('arrow')?></a><p><a class="text-link" href="<?=h(url('registro.php'))?>">Crear cuenta</a></p><?php endif;?>
+<div class="detail-description"><h2>Características</h2><p><?=nl2br(h($p['detalle']?:$p['descripcion']))?></p><span class="sku">Código: <?=h($p['sku'])?></span></div></div></div></main>
+<?php page_footer(); ?>
